@@ -1,80 +1,86 @@
 const express = require('express');
-const stripe = require('stripe')('sk_test_51Pn1wHFAgp4jVYokihnrDgKJWoDqBPxXfqPtcHlX2PRAfLPQ61pV8qdiMb3GrrApVU2sDGtexQSIgImUlnl1ZAC400Jzy7Tf64');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your Stripe secret key
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
-const port = 3000;
-
 app.use(bodyParser.json());
 app.use(cors());
 
-// Create a customer
-app.post('/create-customer', async (req, res) => {
-    const { email } = req.body;
+// Default POST route to create a customer
+app.post('/', async (req, res) => {
+  try {
+    const { email, name, description } = req.body;
 
-    try {
-        const customer = await stripe.customers.create({ email });
-        res.status(200).send({ customerId: customer.id });
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
+    // Create a customer in Stripe
+    const customer = await stripe.customers.create({
+      email: email,
+      name: name,
+      description: description,
+    });
+
+    res.json({
+      message: 'Customer created successfully!',
+      customer: customer,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Attach a payment method to a customer
-app.post('/attach-payment-method', async (req, res) => {
-    const { paymentMethodId, customerId } = req.body;
+// Your other routes...
 
-    try {
-        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-        await stripe.customers.update(customerId, {
-            invoice_settings: {
-                default_payment_method: paymentMethodId,
-            },
-        });
+// Add payment sheet or other routes as needed
+app.post('/payment-sheet', async (req, res) => {
+  try {
+    const { number, exp_month, exp_year, cvc } = req.body;
 
-        res.status(200).send({ success: true });
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
+    // Create a customer
+    const customer = await stripe.customers.create();
+
+    // Create a payment method
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: 'card',
+      card: {
+        number: number,
+        exp_month: exp_month,
+        exp_year: exp_year,
+        cvc: cvc,
+      },
+    });
+
+    // Attach the payment method to the customer
+    await stripe.paymentMethods.attach(paymentMethod.id, {
+      customer: customer.id,
+    });
+
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      { customer: customer.id },
+      { apiVersion: '2024-06-20' }
+    );
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1099,
+      currency: 'eur',
+      customer: customer.id,
+      payment_method: paymentMethod.id,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    res.json({
+      paymentIntent: paymentIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+      publishableKey: 'pk_test_51Pn1wHFAgp4jVYokihnrDgKJWoDqBPxXfqPtcHlX2PRAfLPQ61pV8qdiMb3GrrApVU2sDGtexQSIgImUlnl1ZAC400Jzy7Tf64'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Retrieve saved payment methods
-app.post('/list-payment-methods', async (req, res) => {
-    const { customerId } = req.body;
+// Add other routes here...
 
-    try {
-        const paymentMethods = await stripe.paymentMethods.list({
-            customer: customerId,
-            type: 'card',
-        });
-
-        res.status(200).send(paymentMethods);
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
-});
-
-// Create a payment intent
-app.post('/create-payment-intent', async (req, res) => {
-    const { amount, currency, customerId, paymentMethodId } = req.body;
-
-    try {
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount,
-            currency,
-            customer: customerId,
-            payment_method: paymentMethodId,
-            off_session: true,
-            confirm: true,
-        });
-
-        res.status(200).send({ clientSecret: paymentIntent.client_secret });
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
-});
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
