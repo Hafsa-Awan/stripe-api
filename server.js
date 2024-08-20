@@ -3,7 +3,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your Str
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const admin = require('firebase-admin');
-const serviceAccount = require('leebi-83d05-firebase-adminsdk-559zo-c55378a453.json');
 const app = express();
 const port = 3000;
 
@@ -15,9 +14,19 @@ app.use(cors());
 
 // Initialize Firebase Admin SDK
 admin.initializeApp({
-     credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://leebi-83d05.firebaseio.com'
-
+    credential: admin.credential.cert({
+        type: process.env.FIREBASE_TYPE,
+        project_id: process.env.FIREBASE_PROJECT_ID,
+        private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+        private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+        client_id: process.env.FIREBASE_CLIENT_ID,
+        auth_uri: process.env.FIREBASE_AUTH_URI,
+        token_uri: process.env.FIREBASE_TOKEN_URI,
+        auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
+        client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+    }),
+    databaseURL: process.env.FIREBASE_DATABASE_URL
 });
 
 // Create a customer
@@ -38,6 +47,7 @@ app.post('/create-customer', async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 });
+
 // Attach a payment method to a customer
 app.post('/attach-payment-method', async (req, res) => {
     const { paymentMethodId, customerId } = req.body;
