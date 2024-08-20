@@ -2,25 +2,42 @@ const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your Stripe secret key
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
+const admin = require('firebase-admin');
+const serviceAccount = require('leebi-83d05-firebase-adminsdk-559zo-c55378a453.json');
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
 
+app.use(bodyParser.json());
+app.use(cors());
+
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+     credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://leebi-83d05.firebaseio.com'
+
+});
+
 // Create a customer
 app.post('/create-customer', async (req, res) => {
-    const { email } = req.body;
+    const { uid, email } = req.body;
 
     try {
         const customer = await stripe.customers.create({ email });
+
+        // Store the customer ID in Firebase Realtime Database
+        await admin.database().ref(`stripeCustomers/${uid}`).set({
+            customerId: customer.id,
+            email: email
+        });
+
         res.status(200).send({ customerId: customer.id });
     } catch (error) {
         res.status(500).send({ error: error.message });
     }
 });
-
 // Attach a payment method to a customer
 app.post('/attach-payment-method', async (req, res) => {
     const { paymentMethodId, customerId } = req.body;
