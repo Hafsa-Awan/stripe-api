@@ -1,0 +1,86 @@
+const express = require('express');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your Stripe secret key
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+app.use(bodyParser.json());
+app.use(cors());
+
+// Default POST route to create a customer
+app.post('/', async (req, res) => {
+  try {
+    const { email, name, description } = req.body;
+
+    // Create a customer in Stripe
+    const customer = await stripe.customers.create({
+      email: email,
+      name: name,
+      description: description,
+    });
+
+    res.json({
+      message: 'Customer created successfully!',
+      customer: customer,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Your other routes...
+
+// Add payment sheet or other routes as needed
+app.post('/payment-sheet', async (req, res) => {
+  try {
+    const { number, exp_month, exp_year, cvc } = req.body;
+
+    // Create a customer
+    const customer = await stripe.customers.create();
+
+    // Create a payment method
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: 'card',
+      card: {
+        number: number,
+        exp_month: exp_month,
+        exp_year: exp_year,
+        cvc: cvc,
+      },
+    });
+
+    // Attach the payment method to the customer
+    await stripe.paymentMethods.attach(paymentMethod.id, {
+      customer: customer.id,
+    });
+
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      { customer: customer.id },
+      { apiVersion: '2024-06-20' }
+    );
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 1099,
+      currency: 'eur',
+      customer: customer.id,
+      payment_method: paymentMethod.id,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+
+    res.json({
+      paymentIntent: paymentIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+      publishableKey: 'pk_test_51Pn1wHFAgp4jVYokihnrDgKJWoDqBPxXfqPtcHlX2PRAfLPQ61pV8qdiMb3GrrApVU2sDGtexQSIgImUlnl1ZAC400Jzy7Tf64'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add other routes here...
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
