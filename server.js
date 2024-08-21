@@ -26,7 +26,7 @@ admin.initializeApp({
         auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_CERT_URL,
         client_x509_cert_url: process.env.CLIENT_CERT_URL
     }),
-    databaseURL: 'https://${process.env.leebi-83d05}.firebaseio.com/'
+    databaseURL: 'https://leebi-83d05.firebaseio.com/'
 });
 
 // Create a customer
