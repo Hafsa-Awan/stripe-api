@@ -15,7 +15,7 @@ app.use(cors());
 // Initialize Firebase Admin SDK
 admin.initializeApp({
     credential: admin.credential.cert({
-        type: process.env.FIREBASE_TYPE,
+        type: process.env.TYPE,
         project_id: 'leebi-83d05',
         private_key_id: process.env.PRIVATE_KEY_ID,
         private_key: process.env.PRIVATE_KEY,
