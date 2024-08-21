@@ -41,12 +41,12 @@ app.post('/create-customer', async (req, res) => {
             customerId: customer.id,
             email: email
         });*/
-     /*   await db.collection('stripeCustomers').doc(uid).set({
+        await db.collection('stripeCustomers').doc(uid).set({
     customerId: customer.id,
     email: email
-});*/
-/res.status(200).send('success');
-        //res.status(200).send({ customerId: customer.id });
+});
+
+        res.status(200).send({ customerId: customer.id });
     } catch (error) {
         res.status(500).send({ error: error.message });
     }
