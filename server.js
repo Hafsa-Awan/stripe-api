@@ -45,8 +45,7 @@ app.post('/create-customer', async (req, res) => {
     customerId: customer.id,
     email: email
 });
-
-        res.status(200).send({ customerId: customer.id });
+ res.status(200).send({ customerId: customer.id });
     } catch (error) {
         res.status(500).send({ error: error.message });
     }
