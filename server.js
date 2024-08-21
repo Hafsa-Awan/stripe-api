@@ -26,7 +26,7 @@ admin.initializeApp({
         auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_CERT_URL,
         client_x509_cert_url: process.env.CLIENT_CERT_URL
     }),
-    databaseURL: 'https://www.leebi-83d05.firebaseio.com/'
+  //  databaseURL: 'https://www.leebi-83d05.firebaseio.com/'
 });
 
 // Create a customer
@@ -37,10 +37,14 @@ app.post('/create-customer', async (req, res) => {
         const customer = await stripe.customers.create({ email });
 
         // Store the customer ID in Firebase Realtime Database
-        await admin.database().ref(`stripeCustomers/${uid}`).set({
+     /*   await admin.database().ref(`stripeCustomers/${uid}`).set({
             customerId: customer.id,
             email: email
-        });
+        });*/
+        await db.collection('stripeCustomers').doc(uid).set({
+    customerId: customer.id,
+    email: email
+});
 
         res.status(200).send({ customerId: customer.id });
     } catch (error) {
