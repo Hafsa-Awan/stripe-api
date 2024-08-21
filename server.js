@@ -28,7 +28,7 @@ admin.initializeApp({
     }),
   //  databaseURL: 'https://www.leebi-83d05.firebaseio.com/'
 });
-
+const db = admin.firestore();
 // Create a customer
 app.post('/create-customer', async (req, res) => {
     const { uid, email } = req.body;
