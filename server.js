@@ -50,7 +50,20 @@ app.post('/create-customer', async (req, res) => {
         res.status(500).send({ error: error.message });
     }
 });
+app.get('/list-payment-methods', async (req, res) => {
+  const customerId = req.query.customerId; // Get customer ID from query params
 
+  try {
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: 'card',
+    });
+
+    res.json(paymentMethods);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
 // Attach a payment method to a customer
 app.post('/attach-payment-method', async (req, res) => {
     const { paymentMethodId, customerId } = req.body;
