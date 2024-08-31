@@ -31,7 +31,7 @@ admin.initializeApp({
 const db = admin.firestore();
 // Create a customer
 app.post('/create-customer', async (req, res) => {
-    const { uid, email,name } = req.body;
+    const { email,name } = req.body;
 
     try {
         const customer = await stripe.customers.create({ email,name });
