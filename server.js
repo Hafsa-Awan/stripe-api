@@ -31,17 +31,19 @@ admin.initializeApp({
 const db = admin.firestore();
 // Create a customer
 app.post('/create-customer', async (req, res) => {
-    const { uid, email } = req.body;
+    const { uid, email,name } = req.body;
 
     try {
-        const customer = await stripe.customers.create({ email });
+        const customer = await stripe.customers.create({ email,name });
 
         // Store the customer ID in Firebase Realtime Database
      /*   await admin.database().ref(`stripeCustomers/${uid}`).set({
+            name:name,
             customerId: customer.id,
             email: email
         });*/
         await db.collection('stripeCustomers').doc(uid).set({
+            name: name,
     customerId: customer.id,
     email: email
 });
