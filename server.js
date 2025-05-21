@@ -30,9 +30,10 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 // Simple GET request for testing server status
-app.get('/test', (req, res) => {
-    res.status(200).send({ message: 'Server is up and running!' });
+app.get('/', (req, res) => {
+    res.status(200).send('Welcome to the Stripe & Firebase API Server!');
 });
+
 
 // Create a customer
 app.post('/create-customer', async (req, res) => {
