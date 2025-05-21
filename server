@@ -73,7 +73,7 @@ app.post('/payment-sheet', async (req, res) => {
       paymentIntent: paymentIntent.client_secret,
       ephemeralKey: ephemeralKey.secret,
       customer: customer.id,
-      publishableKey: 'pk_test_51Pn1wHFAgp4jVYokihnrDgKJWoDqBPxXfqPtcHlX2PRAfLPQ61pV8qdiMb3GrrApVU2sDGtexQSIgImUlnl1ZAC400Jzy7Tf64'
+      publishableKey: process.env.STRIPE_ publishable_KEY
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
