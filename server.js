@@ -29,6 +29,11 @@ admin.initializeApp({
   //  databaseURL: 'https://www.leebi-83d05.firebaseio.com/'
 });
 const db = admin.firestore();
+// Simple GET request for testing server status
+app.get('/test', (req, res) => {
+    res.status(200).send({ message: 'Server is up and running!' });
+});
+
 // Create a customer
 app.post('/create-customer', async (req, res) => {
     const { uid, email,name } = req.body;
