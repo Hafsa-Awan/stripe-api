@@ -74,7 +74,7 @@ app.get('/list-payment-methods', async (req, res) => {
 });
 // Attach a payment method to a customer
 app.post('/attach-payment-method', async (req, res) => {
-    const { paymentMethodId, customerId } = req.body;
+    const { paymentMethodId, customerId ,uid  } = req.body;
 
     try {
         await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
