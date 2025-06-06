@@ -83,7 +83,29 @@ app.post('/attach-payment-method', async (req, res) => {
                 default_payment_method: paymentMethodId,
             },
         });
+// add logic for retrieving payment method to compare if exists in stripe and then storing in firestore
+        // ✅ New: Fetch card details from Stripe
+        const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+        const card = paymentMethod.card;
 
+        // ✅ New: Build the card object to store in Firestore
+        const cardData = {
+            id: paymentMethod.id,
+            brand: card.brand,
+            last4: card.last4,
+            exp_month: card.exp_month,
+            exp_year: card.exp_year,
+        };
+
+        const userRef = db.collection('users').doc(uid);
+
+        // ✅ New: Push or merge the card into user's paymentMethods.stripe array
+        await userRef.set({
+            paymentMethods: {
+                stripe: admin.firestore.FieldValue.arrayUnion(cardData)
+            }
+        }, { merge: true });
+//end 
         res.status(200).send({ success: true });
     } catch (error) {
         res.status(500).send({ error: error.message });
